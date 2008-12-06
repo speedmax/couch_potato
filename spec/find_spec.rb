@@ -56,15 +56,13 @@ end
 describe 'all' do
   before(:each) do
     CouchPotato::Persistence.Db.delete!
-    @comment = Comment.create! :title => 'title'
-    @comment2 = Comment.create! :title => 'title'
+    @comment = Comment.create! :title => 'title', :commenter_id => 1
+    @comment2 = Comment.create! :title => 'title', :commenter_id => 2
   end
   
   it "should find the matching objects" do
-    comments = Comment.all(:title =>'title')
-    comments.size.should == 2
-    comments.should include(@comment)
-    comments.should include(@comment2)
+    comments = Comment.all({:title => 'title'}, :order => [:commenter_id])
+    comments.should == [@comment, @comment2]
   end
   
   it "should return [] if nothing found" do

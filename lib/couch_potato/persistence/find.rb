@@ -1,16 +1,16 @@
 module CouchPotato
   module Persistence
     module Find
-      def first(options = {})
-        Finder.new.find(self, options).first
+      def first(options = {}, view_options = {})
+        Finder.new.find(self, options, view_options).first
       end
       
-      def last(options = {})
-        Finder.new.find(self, options, :descending => true).first
+      def last(options = {}, view_options = {})
+        Finder.new.find(self, options, view_options.merge(:descending => true)).first
       end
       
-      def all(options = {})
-        Finder.new.find(self, options)
+      def all(options = {}, view_options = {})
+        Finder.new.find(self, options, view_options)
       end
       
       def count(options = {})

@@ -40,7 +40,7 @@ describe CouchPotato::Persistence::Finder, 'find' do
     c1 = Comment.create! :title => 'test', :commenter_id => '1'
     c2 = Comment.create! :title => 'test', :commenter_id => '2'
     c3 = Comment.create! :title => 'test', :commenter_id => '3'
-    comments = CouchPotato::Persistence::Finder.new.find Comment, :commenter_id => '2'..'3'
+    comments = CouchPotato::Persistence::Finder.new.find Comment, {:commenter_id => '2'..'3'}, :order => [:commenter_id]
     comments.should == [c2, c3]
   end
   
@@ -49,7 +49,7 @@ describe CouchPotato::Persistence::Finder, 'find' do
     c2 = Comment.create! :title => 'test', :commenter_id => '2'
     c3 = Comment.create! :title => 'test', :commenter_id => '3'
     c4 = Comment.create! :title => 'test2', :commenter_id => '3'
-    comments = CouchPotato::Persistence::Finder.new.find Comment, :commenter_id => '2'..'3', :title => 'test'
+    comments = CouchPotato::Persistence::Finder.new.find Comment, {:commenter_id => '2'..'3', :title => 'test'}, :order => [:commenter_id]
     comments.should == [c2, c3]
   end
   

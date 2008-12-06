@@ -70,13 +70,21 @@ module CouchPotato
       end
       
       def search_keys(params)
-        if params[:search_values].select{|v| v.is_a?(Range)}.any?
-          {:startkey => params[:search_values].map{|v| v.is_a?(Range) ? v.first : v}, :endkey => params[:search_values].map{|v| v.is_a?(Range) ? v.last : v}}.merge(params[:view_options])
+        if params[:search_values].select{|v| v.is_a?(Range)}.any? || params[:order]
+          {:startkey => startkey(params), :endkey => endkey(params)}.merge(params[:view_options])
         elsif params[:search_values].select{|v| v.is_a?(Array)}.any?
           {:keys => prepare_multi_key_search(params[:search_values])}.merge(params[:view_options])
         else
           {:key => params[:search_values]}.merge(params[:view_options])
         end
+      end
+      
+      def startkey(params)
+        params[:search_values].map{|v| v.is_a?(Range) ? v.first : v}
+      end
+      
+      def endkey(params)
+        params[:search_values].map{|v| v.is_a?(Range) ? v.last : v || {}}
       end
       
       def prepare_multi_key_search(values)
@@ -90,19 +98,25 @@ module CouchPotato
       end
       
       def view_parameters(clazz, conditions, view_options)
+        order = view_options.delete(:order)
         {
           :class => clazz,
           :design_document => clazz.name.underscore,
-          :search_fields => conditions.to_a.sort_by{|f| f.first.to_s}.map(&:first),
-          :search_values => conditions.to_a.sort_by{|f| f.first.to_s}.map(&:last),
+          :search_fields => sorted_keys(conditions, order),
+          :search_values => sorted_keys(conditions, order).map{|key| conditions[key]},
           :view_options => view_options,
-          :view => "by_#{view_name(conditions)}",
-          :view_url => "#{clazz.name.underscore}/by_#{view_name(conditions)}"
+          :order => order,
+          :view => "by_#{view_name(conditions, order)}",
+          :view_url => "#{clazz.name.underscore}/by_#{view_name(conditions, order)}"
         }
       end
       
-      def view_name(options)
-        options.to_a.sort_by{|f| f.first.to_s}.map(&:first).join('_and_')
+      def sorted_keys(conditions, order)
+        (order || []) | conditions.keys.sort{|x,y| x.to_s <=> y.to_s}
+      end
+      
+      def view_name(conditions, order)
+        sorted_keys(conditions, order).join('_and_')
       end
     end
   end
