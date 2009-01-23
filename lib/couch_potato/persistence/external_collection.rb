@@ -59,7 +59,7 @@ module CouchPotato
       
       def items
         unless @items
-          @items = Finder.new.find @item_class, @owner_id_attribute_name => owner_id
+          @items = Finder.new.find @item_class, {@owner_id_attribute_name => owner_id}
           @original_item_ids = @items.map(&:_id)
         end
         @items

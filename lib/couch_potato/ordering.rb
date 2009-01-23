@@ -10,6 +10,8 @@ module CouchPotato
         before_destroy :update_lower_positions_after_destroy
         before_update :update_positions
         
+        #self.default_order ||= [:position]
+        
         def self.set_ordering_scope(scope)
           self.ordering_scope = scope
         end
@@ -33,10 +35,10 @@ module CouchPotato
       @old_position = MAX if new_document?
       return unless @old_position
       if position < @old_position
-        new_lower_items = find_in_positions self.position, @old_position - 1
+        new_lower_items = find_in_positions(self.position, @old_position - 1).reject{|item| item._id == self._id}
         move new_lower_items, :down
       elsif position > @old_position
-        new_higher_items = find_in_positions @old_position + 1, position
+        new_higher_items = find_in_positions(@old_position + 1, position).reject{|item| item._id == self._id}
         move new_higher_items, :up
       end
     end
@@ -69,16 +71,5 @@ module CouchPotato
       end
     end
   end
-  
-  module ExternalCollectionOrderedFindExtension
-    def items
-      if @item_class.property_names.include?(:position)
-        super @item_class, @owner_id_attribute_name => owner_id, :position => 1..CouchPotato::Ordering::MAX
-      else
-        super
-      end
-    end
-  end
-  CouchPotato::Persistence::ExternalCollection.send :include, ExternalCollectionOrderedFindExtension
 end
 

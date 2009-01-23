@@ -15,6 +15,12 @@ describe CouchPotato::Persistence::Finder, 'find' do
     @database.should_receive(:view).with(anything, {:key => ['xyz', 'abc']}).and_return({'rows' => []})
     CouchPotato::Persistence::Finder.new.find Comment, {:name => 'xyz', :title => 'abc'}
   end
+  
+  it "should order by default order of class" do
+    Comment.stub!(:default_order).and_return([:title])
+    @database.should_receive(:view).with('comment/by_title', {:startkey => [nil], :endkey => [{}]}).and_return({'rows' => []})
+    CouchPotato::Persistence::Finder.new.find Comment, {}
+  end
 end
 
 describe CouchPotato::Persistence::Finder, "with sort" do

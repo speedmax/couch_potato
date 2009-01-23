@@ -60,6 +60,10 @@ describe 'has_many stored separately' do
   end
   
   describe "all" do
+    before(:each) do
+      Commenter.db.delete!
+    end
+    
     it "should find all dependent objects by search conditions" do
       commenter = Commenter.create!
       comment1 = commenter.comments.create! :title => 'my title'
@@ -83,6 +87,10 @@ describe 'has_many stored separately' do
   end
   
   describe "count" do
+    before(:each) do
+      Commenter.db.delete!
+    end
+    
     it "should count the dependent objects by search criteria" do
       commenter = Commenter.create!
       commenter.comments.create! :title => 'my title'
@@ -101,6 +109,9 @@ describe 'has_many stored separately' do
   end
   
   describe "first" do
+    before(:each) do
+      Commenter.db.delete!
+    end
     it "should find the first dependent object by search conditions" do
       commenter = Commenter.create!
       comment1 = commenter.comments.create! :title => 'my title'
@@ -109,13 +120,17 @@ describe 'has_many stored separately' do
     end
     
     it "should return the first dependent object" do
-      comment1 = @commenter.comments.build :title => 'my title'
-      comment2 = @commenter.comments.build :title => 'my title2'
+      Comment.default_order = [:_id]
+      comment1 = @commenter.comments.build :title => 'my title', :_id => '1'
+      comment2 = @commenter.comments.build :title => 'my title2', :_id => '2'
       @commenter.comments.first.should == comment1
     end    
   end
   
   describe "create" do
+    before(:each) do
+      Commenter.db.delete!
+    end
     it "should persist child objects" do
       @commenter.comments.build(:title => 'my title')
       @commenter.save!
@@ -150,6 +165,9 @@ describe 'has_many stored separately' do
   end
   
   describe "update" do
+    before(:each) do
+      Commenter.db.delete!
+    end
     it "should persist child objects" do
       comment = @commenter.comments.build(:title => 'my title')
       @commenter.save!
@@ -179,6 +197,9 @@ describe 'has_many stored separately' do
   end
   
   describe "destroy" do
+    before(:each) do
+      Commenter.db.delete!
+    end
     
     class AdminComment
       include CouchPotato::Persistence

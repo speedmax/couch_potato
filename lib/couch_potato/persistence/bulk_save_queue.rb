@@ -1,7 +1,7 @@
 module CouchPotato
   module Persistence
     class BulkSaveQueue
-      attr_reader :callbacks
+      attr_reader :callbacks, :instances
       
       def initialize
         @other_queues = []

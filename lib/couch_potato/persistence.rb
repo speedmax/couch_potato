@@ -9,6 +9,8 @@ require File.dirname(__FILE__) + '/persistence/json'
 require File.dirname(__FILE__) + '/persistence/bulk_save_queue'
 require File.dirname(__FILE__) + '/persistence/find'
 require File.dirname(__FILE__) + '/persistence/dirty_attributes'
+require File.dirname(__FILE__) + '/persistence/custom_view'
+require File.dirname(__FILE__) + '/persistence/view_query'
 
 module CouchPotato
   module Persistence
@@ -18,11 +20,12 @@ module CouchPotato
     
     def self.included(base)
       base.send :extend, ClassMethods, Find
-      base.send :include, Callbacks, Properties, Validatable, Json, DirtyAttributes
+      base.send :include, Callbacks, Properties, Validatable, Json, DirtyAttributes, CustomView
       base.class_eval do
         attr_accessor :_id, :_rev, :_attachments, :_deleted, :created_at, :updated_at
         attr_reader :bulk_save_queue
         alias_method :id, :_id
+        cattr_accessor :default_order
       end
     end
     
@@ -97,6 +100,12 @@ module CouchPotato
     
     def ==(other)
       other.class == self.class && self.to_json == other.to_json
+    end
+    
+    def inspect
+      self.class.property_names.inject("<#{self.class.name} _id: '#{_id}', _rev: '#{_rev}' ") do |res, property_name|
+        res << "#{property_name}: #{self.send(property_name)} "
+      end << '>'
     end
     
     private

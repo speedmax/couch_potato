@@ -29,3 +29,12 @@ class Comment
   property :title
   belongs_to :commenter
 end
+
+
+def sp(*args)
+  puts '<pre>'
+  args.each do |arg|
+    puts "#{arg.inspect}"
+  end
+  puts '</pre>'
+end
