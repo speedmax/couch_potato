@@ -10,7 +10,7 @@ module CouchPotato
         before_destroy :update_lower_positions_after_destroy
         before_update :update_positions
         
-        #self.default_order ||= [:position]
+        self.default_order ||= [:position]
         
         def self.set_ordering_scope(scope)
           self.ordering_scope = scope

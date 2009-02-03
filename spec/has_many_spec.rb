@@ -1,207 +1,238 @@
 require File.dirname(__FILE__) + '/spec_helper'
 
+class Office
+  include CouchPotato::Persistence
+  
+  has_many :coworkers, :stored => :separately
+  has_many :lights, :stored => :inline
+end
+
+class Light
+  include CouchPotato::Persistence
+  
+  belongs_to :office
+  
+  property :power
+end
+
+class Coworker
+  include CouchPotato::Persistence
+  
+  belongs_to :office
+  
+  property :name
+end
+
 describe 'has_many stored inline' do
   before(:each) do
-    @user = User.new
+    @office = Office.new
   end
   
   it "should build child objects" do
-    @user.comments.build(:title => 'my title')
-    @user.comments.first.class.should == Comment
-    @user.comments.first.title.should == 'my title'
+    @office.lights.build(:power => '60W')
+    @office.lights.first.class.should == Light
+    @office.lights.first.power.should == '60W'
   end
   
   it "should add child objects" do
-    @user.comments << Comment.new(:title => 'my title')
-    @user.comments.first.class.should == Comment
-    @user.comments.first.title.should == 'my title'
+    @office.lights << Light.new(:power => '60W')
+    @office.lights.first.class.should == Light
+    @office.lights.first.power.should == '60W'
   end
   
   it "should persist child objects" do
-    @user.comments.build(:title => 'my title')
-    @user.save!
-    @user = User.find @user._id
-    @user.comments.first.class.should == Comment
-    @user.comments.first.title.should == 'my title'
+    @office.lights.build(:power => '10W')
+    @office.save!
+    @office = Office.find @office._id
+    @office.lights.first.class.should == Light
+    @office.lights.first.power.should == '10W'
   end
 end
 
 describe 'has_many stored separately' do
   before(:each) do
-    @commenter = Commenter.new
+    Office.db.delete!
+    @office = Office.new
   end
   
   it "should build child objects" do
-    @commenter.comments.build(:title => 'my title')
-    @commenter.comments.first.class.should == Comment
-    @commenter.comments.first.title.should == 'my title'
+    @office.coworkers.build(:name => 'my name')
+    @office.coworkers.first.class.should == Coworker
+    @office.coworkers.first.name.should == 'my name'
   end
   
   it "should create child objects" do
-    @commenter.save!
-    @commenter.comments.create(:title => 'my title')
-    @commenter = Commenter.find @commenter._id
-    @commenter.comments.first.class.should == Comment
-    @commenter.comments.first.title.should == 'my title'
+    @office.save!
+    @office.coworkers.create(:name => 'my name')
+    @office = Office.find @office._id
+    @office.coworkers.first.class.should == Coworker
+    @office.coworkers.first.name.should == 'my name'
   end
   
   it "should create! child objects" do
-    @commenter.save!
-    @commenter.comments.create!(:title => 'my title')
-    @commenter = Commenter.find @commenter._id
-    @commenter.comments.first.class.should == Comment
-    @commenter.comments.first.title.should == 'my title'
+    @office.save!
+    @office.coworkers.create!(:name => 'my name')
+    @office = Office.find @office._id
+    @office.coworkers.first.class.should == Coworker
+    @office.coworkers.first.name.should == 'my name'
   end
   
   it "should add child objects" do
-    @commenter.comments << Comment.new(:title => 'my title')
-    @commenter.comments.first.class.should == Comment
-    @commenter.comments.first.title.should == 'my title'
+    @office.coworkers << Coworker.new(:name => 'my name')
+    @office.coworkers.first.class.should == Coworker
+    @office.coworkers.first.name.should == 'my name'
   end
   
   describe "all" do
     before(:each) do
-      Commenter.db.delete!
+      Office.db.delete!
     end
     
     it "should find all dependent objects by search conditions" do
-      commenter = Commenter.create!
-      comment1 = commenter.comments.create! :title => 'my title'
-      comment2 = commenter.comments.create! :title => 'my title'
-      commenter.comments.create! :title => 'my title2'
-      comments = commenter.comments.all(:title => 'my title')
-      comments.size.should == 2
-      comments.should include(comment1)
-      comments.should include(comment2)
+      p 'XXXXXXXXXXXXXXXXXXXXXXX'
+      office = Office.create!
+      coworker1 = office.coworkers.create! :name => 'alex'
+      coworker2 = office.coworkers.create! :name => 'alex'
+      office.coworkers.create! :name => 'mathias'
+      p 'MMMMMMMMMMMMMMMMMMMMMMMMMM'
+      coworkers = office.coworkers.all(:name => 'alex')
+      p 'MMMMMMMMMMMMMMMMMMMMMMMMMM'
+      p coworkers.map(&:name)
+      coworkers.size.should == 2
+      coworkers.should include(coworker1)
+      coworkers.should include(coworker2)
     end
     
     it "should return all dependent objects" do
-      @commenter = Commenter.create!
-      comment1 = @commenter.comments.create! :title => 'my title'
-      comment2 = @commenter.comments.create! :title => 'my title2'
-      comments = @commenter.comments.all
-      comments.size.should == 2
-      comments.should include(comment1)
-      comments.should include(comment2)
+      @office = Office.create!
+      coworker1 = @office.coworkers.create! :name => 'my name'
+      coworker2 = @office.coworkers.create! :name => 'my name2'
+      coworkers = @office.coworkers.all
+      coworkers.size.should == 2
+      coworkers.should include(coworker1)
+      coworkers.should include(coworker2)
     end    
   end
   
   describe "count" do
     before(:each) do
-      Commenter.db.delete!
+      Office.db.delete!
     end
     
     it "should count the dependent objects by search criteria" do
-      commenter = Commenter.create!
-      commenter.comments.create! :title => 'my title'
-      commenter.comments.create! :title => 'my title'
-      commenter.comments.create! :title => 'my title2'
-      commenter.comments.count(:title => 'my title').should == 2
+      office = Office.create!
+      office.coworkers.create! :name => 'my name'
+      office.coworkers.create! :name => 'my name'
+      office.coworkers.create! :name => 'my name2'
+      office.coworkers.count(:name => 'my name').should == 2
     end
     
     it "should count all dependent objects" do
-      commenter = Commenter.create!
-      commenter.comments.create! :title => 'my title'
-      commenter.comments.create! :title => 'my title'
-      commenter.comments.create! :title => 'my title2'
-      commenter.comments.count.should == 3
+      office = Office.create!
+      office.coworkers.create! :name => 'my name'
+      office.coworkers.create! :name => 'my name'
+      office.coworkers.create! :name => 'my name2'
+      office.coworkers.count.should == 3
     end
   end
   
   describe "first" do
     before(:each) do
-      Commenter.db.delete!
+      Office.db.delete!
+    end
+    after(:each) do
+      Coworker.default_order = []
     end
     it "should find the first dependent object by search conditions" do
-      commenter = Commenter.create!
-      comment1 = commenter.comments.create! :title => 'my title'
-      comment2 = commenter.comments.create! :title => 'my title2'
-      commenter.comments.first(:title => 'my title2').should == comment2
+      office = Office.create!
+      coworker1 = office.coworkers.create! :name => 'my name'
+      coworker2 = office.coworkers.create! :name => 'my name2'
+      office.coworkers.first(:name => 'my name2').should == coworker2
     end
     
     it "should return the first dependent object" do
-      Comment.default_order = [:_id]
-      comment1 = @commenter.comments.build :title => 'my title', :_id => '1'
-      comment2 = @commenter.comments.build :title => 'my title2', :_id => '2'
-      @commenter.comments.first.should == comment1
+      Coworker.default_order = [:_id]
+      coworker1 = @office.coworkers.build :name => 'my name', :_id => '1'
+      coworker2 = @office.coworkers.build :name => 'my name2', :_id => '2'
+      @office.coworkers.first.should == coworker1
     end    
   end
   
   describe "create" do
     before(:each) do
-      Commenter.db.delete!
+      Office.db.delete!
     end
     it "should persist child objects" do
-      @commenter.comments.build(:title => 'my title')
-      @commenter.save!
-      @commenter = Commenter.find @commenter._id
-      @commenter.comments.first.class.should == Comment
-      @commenter.comments.first.title.should == 'my title'
+      @office.coworkers.build(:name => 'my name')
+      @office.save!
+      @office = Office.find @office._id
+      @office.coworkers.first.class.should == Coworker
+      @office.coworkers.first.name.should == 'my name'
     end
 
     it "should set the _id in child objects" do
-      @commenter.comments.build(:title => 'my title')
-      @commenter.save!
-      @commenter.comments.first._id.should_not be_nil
+      @office.coworkers.build(:name => 'my name')
+      @office.save!
+      @office.coworkers.first._id.should_not be_nil
     end
 
     it "should set the _rev in child objects" do
-      @commenter.comments.build(:title => 'my title')
-      @commenter.save!
-      @commenter.comments.first._rev.should_not be_nil
+      @office.coworkers.build(:name => 'my name')
+      @office.save!
+      @office.coworkers.first._rev.should_not be_nil
     end
 
     it "should set updated_at in child objects" do
-      @commenter.comments.build(:title => 'my title')
-      @commenter.save!
-      @commenter.comments.first.updated_at.should_not be_nil
+      @office.coworkers.build(:name => 'my name')
+      @office.save!
+      @office.coworkers.first.updated_at.should_not be_nil
     end
 
     it "should set created_at in child objects" do
-      @commenter.comments.build(:title => 'my title')
-      @commenter.save!
-      @commenter.comments.first.created_at.should_not be_nil
+      @office.coworkers.build(:name => 'my name')
+      @office.save!
+      @office.coworkers.first.created_at.should_not be_nil
     end
   end
   
   describe "update" do
     before(:each) do
-      Commenter.db.delete!
+      Office.db.delete!
     end
     it "should persist child objects" do
-      comment = @commenter.comments.build(:title => 'my title')
-      @commenter.save!
-      comment.title = 'new title'
-      @commenter.save!
-      @commenter = Commenter.find @commenter._id
-      @commenter.comments.first.title.should == 'new title'
+      coworker = @office.coworkers.build(:name => 'my name')
+      @office.save!
+      coworker.name = 'new name'
+      @office.save!
+      @office = Office.find @office._id
+      @office.coworkers.first.name.should == 'new name'
     end
     
     it "should set the _rev in child objects" do
-      comment = @commenter.comments.build(:title => 'my title')
-      @commenter.save!
-      old_rev = comment._rev
-      comment.title = 'new title'
-      @commenter.save!
-      @commenter.comments.first._rev.should_not == old_rev
+      coworker = @office.coworkers.build(:name => 'my name')
+      @office.save!
+      old_rev = coworker._rev
+      coworker.name = 'new name'
+      @office.save!
+      @office.coworkers.first._rev.should_not == old_rev
     end
 
     it "should set updated_at in child objects" do
-      comment = @commenter.comments.build(:title => 'my title')
-      @commenter.save!
-      old_updated_at = comment.updated_at
-      comment.title = 'new title'
-      @commenter.save!
-      @commenter.comments.first.updated_at.should > old_updated_at
+      coworker = @office.coworkers.build(:name => 'my name')
+      @office.save!
+      old_updated_at = coworker.updated_at
+      coworker.name = 'new name'
+      @office.save!
+      @office.coworkers.first.updated_at.should > old_updated_at
     end
   end
   
   describe "destroy" do
     before(:each) do
-      Commenter.db.delete!
+      Office.db.delete!
     end
     
-    class AdminComment
+    class AdminCoworker
       include CouchPotato::Persistence
       belongs_to :admin
     end
@@ -213,14 +244,14 @@ describe 'has_many stored separately' do
     
     class Admin
       include CouchPotato::Persistence
-      has_many :admin_comments, :stored => :separately, :dependent => :destroy
+      has_many :admin_coworkers, :stored => :separately, :dependent => :destroy
       has_many :admin_friends, :stored => :separately
     end
     
     it "should destroy all dependent objects" do
       admin = Admin.create!
-      comment = admin.admin_comments.create!
-      id = comment._id
+      coworker = admin.admin_coworkers.create!
+      id = coworker._id
       admin.destroy
       lambda {
         CouchPotato::Persistence.Db.get(id).should
@@ -229,18 +260,18 @@ describe 'has_many stored separately' do
     
     it "should unset _id in dependent objects" do
       admin = Admin.create!
-      comment = admin.admin_comments.create!
-      id = comment._id
+      coworker = admin.admin_coworkers.create!
+      id = coworker._id
       admin.destroy
-      comment._id.should be_nil
+      coworker._id.should be_nil
     end
     
     it "should unset _rev in dependent objects" do
       admin = Admin.create!
-      comment = admin.admin_comments.create!
-      id = comment._id
+      coworker = admin.admin_coworkers.create!
+      id = coworker._id
       admin.destroy
-      comment._rev.should be_nil
+      coworker._rev.should be_nil
     end
 
     it "should nullify independent objects" do

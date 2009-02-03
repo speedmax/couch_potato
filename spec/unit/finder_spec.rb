@@ -18,7 +18,7 @@ describe CouchPotato::Persistence::Finder, 'find' do
   
   it "should order by default order of class" do
     Comment.stub!(:default_order).and_return([:title])
-    @database.should_receive(:view).with('comment/by_title', {:startkey => [nil], :endkey => [{}]}).and_return({'rows' => []})
+    @database.should_receive(:view).with('comment/by_title', {:startkey => [nil], :endkey => ["\u9999"]}).and_return({'rows' => []})
     CouchPotato::Persistence::Finder.new.find Comment, {}
   end
 end
@@ -31,12 +31,12 @@ describe CouchPotato::Persistence::Finder, "with sort" do
   
   describe "query view" do
     it "should add the sort keys to the search keys" do
-      @database.should_receive(:view).with(anything, {:startkey => [nil, 'xyz'], :endkey => [{}, 'xyz']}).and_return({'rows' => []})
+      @database.should_receive(:view).with(anything, {:startkey => [nil, 'xyz'], :endkey => ["\u9999", 'xyz']}).and_return({'rows' => []})
       CouchPotato::Persistence::Finder.new.find Comment, {:name => 'xyz'}, :order => [:title]
     end
 
     it "should search by sort keys without filtering" do
-      @database.should_receive(:view).with(anything, {:startkey => [nil], :endkey => [{}]}).and_return({'rows' => []})
+      @database.should_receive(:view).with(anything, {:startkey => [nil], :endkey => ["\u9999"]}).and_return({'rows' => []})
       CouchPotato::Persistence::Finder.new.find Comment, {}, :order => [:title]
     end
 

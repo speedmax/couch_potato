@@ -42,6 +42,7 @@ module CouchPotato
       end
       
       def query_view
+        ::CouchPotato::Logger.debug "Sending query: #{view_url} with parameters: #{search_keys.inspect}"
         db.view view_url, search_keys
       end
       
@@ -64,7 +65,7 @@ module CouchPotato
       end
       
       def endkey
-        search_values.map{|v| v.is_a?(Range) ? v.last : v || {}}
+        search_values.map{|v| v.is_a?(Range) ? v.last : v || "\u9999"}
       end
       
       def search_values

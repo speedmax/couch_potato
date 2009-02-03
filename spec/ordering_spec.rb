@@ -62,10 +62,12 @@ describe CouchPotato::Ordering do
   end
 
   it "should order by position" do
-      @album.photos.create!
-      @album.photos.create! :position => 1
-      @album = Album.get @album._id
-      @album.photos.map(&:position).should == [1,2]
+    # XXX this fails sometimes
+    @album.photos.create!
+    @album.photos.create! :position => 1
+    @album = Album.get @album._id
+    @album.photos.map(&:position).should == [1,2]
+    flunk
   end
 
   describe "destroy" do

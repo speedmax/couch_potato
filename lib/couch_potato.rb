@@ -7,7 +7,14 @@ require 'json/add/rails'
 require 'ostruct'
 
 module CouchPotato
+  class SimpleLogger
+    def debug(message)
+      $stderr.puts message
+    end
+  end
+  
   Config = OpenStruct.new
+  Logger = SimpleLogger.new
 end
 
 require File.dirname(__FILE__) + '/core_ext/object'
